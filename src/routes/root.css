@@ -1,0 +1,22 @@
+.my-gradient {
+    width: 1000px;
+    height: 1000px;
+    background: radial-gradient(circle, #16a34a7f 4%, #0c0a09 70%, #0c0a09 90%) ;
+    position: absolute;
+    bottom:-600px;
+    left:-600px;
+    z-index:   -1;
+}
+
+.my-gradient2 {
+    width: 1000px;
+    height: 1000px;
+    background: radial-gradient(circle, #16a34ab5 4%, #0c0a09 70%, #0c0a09 90%);
+    position: absolute;
+    top: -600px;
+    right: -600px;
+    z-index: -1;
+}
+.no-scroll {
+    overflow: hidden;
+}
