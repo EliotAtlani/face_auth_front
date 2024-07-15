@@ -191,6 +191,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
           <div className="relative">
             <div
               className={cn(
+                // @ts-ignore
                 videoRef.current && videoRef.current.srcObject ? "" : "hidden",
                 "w-[150px] h-[150px] border-primary rounded-md border-[2px] absolute top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%]"
               )}
@@ -200,6 +201,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
               autoPlay
               playsInline
               className={cn(
+                // @ts-ignore
                 videoRef.current && videoRef.current.srcObject ? "" : "hidden",
                 "w-full max-w-md rounded-lg shadow-lg mt-4"
               )}

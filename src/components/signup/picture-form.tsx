@@ -139,7 +139,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
       toast({
         title: "Error",
         description: "No faces found, please try again.",
-        status: "error",
+        variant: "destructive",
       });
       setCapturedImage(null);
       startCamera();
@@ -147,7 +147,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
       toast({
         title: "Error",
         description: "No faces found. Please try again.",
-        status: "error",
+        variant: "destructive",
       });
       setCapturedImage(null);
       startCamera();

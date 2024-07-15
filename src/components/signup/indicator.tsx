@@ -1,5 +1,3 @@
-import React from "react";
-
 const Indicator = ({ index }: { index: number }) => {
   return (
     <div>

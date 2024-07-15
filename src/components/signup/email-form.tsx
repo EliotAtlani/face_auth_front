@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import { Separator } from "@radix-ui/react-separator";
 import { Label } from "../ui/label";
