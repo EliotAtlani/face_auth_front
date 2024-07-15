@@ -4,6 +4,7 @@ import { FlipWords } from "../components/ui/flip-words";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
 import { Label } from "../components/ui/label";
 import "./root.css";
+import logo from "../assets/logo-dark.png";
 function Root() {
   const words = ["awesome", "performant", "secured", "modern"];
 
@@ -16,7 +17,7 @@ function Root() {
 
       <div className="w-4/5 flex items-start">
         <div className="flex flex-col ">
-          <img src="src/assets/logo-dark.png" className="w-48" />
+          <img src={logo} className="w-48" />
           <div className="text-4xl mx-auto font-normal text-neutral-600 dark:text-neutral-400 mt-4">
             Integrate
             <FlipWords words={words} />

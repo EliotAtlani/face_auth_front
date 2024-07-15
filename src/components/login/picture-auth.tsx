@@ -10,7 +10,7 @@ import api from "../../lib/axios";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from "lucide-react";
 import { AuthContext } from "../auth/AuthProvider";
-
+import gif from "../../assets/gif.gif";
 interface PictureFormProps {
   email: string;
   setTab: React.Dispatch<
@@ -230,7 +230,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
           {error && (
             <>
               <img
-                src="src/assets/gif.gif"
+                src={gif}
                 className="rouded-xl bg-clip-border w-full overflow-hidden"
               />
 

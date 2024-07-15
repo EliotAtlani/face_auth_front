@@ -5,7 +5,7 @@ import { useMotionValue } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useMotionTemplate, motion } from "framer-motion";
 import { cn } from "../../lib/utils";
-
+import aiFace from "../../assets/ai_auth2.jpeg";
 export const EvervaultCard = ({
   className,
 }: {
@@ -50,7 +50,7 @@ export const EvervaultCard = ({
         <div className="relative z-10 flex items-center justify-center">
           <div className="relative h-48 w-48  rounded-full flex items-center justify-center text-white font-bold text-4xl">
             <img
-              src="src/assets/ai_auth2.jpeg"
+              src={aiFace}
               alt="AI Portrait"
               className="rounded-full w-full fill-current"
             />
