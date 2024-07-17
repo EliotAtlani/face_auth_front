@@ -4,7 +4,7 @@ import { FlipWords } from "../components/ui/flip-words";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
 import { Label } from "../components/ui/label";
 import "./root.css";
-import logo from "../assets/logo-dark.png";
+import logo from "../assets/logo.png";
 function Root() {
   const words = ["awesome", "performant", "secured", "modern"];
 

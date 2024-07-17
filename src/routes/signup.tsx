@@ -7,17 +7,12 @@ import { emailSchema } from "../lib/zod";
 import { useToast } from "../components/ui/use-toast";
 import EmailForm from "../components/signup/email-form";
 import PictureForm from "../components/signup/picture-form";
-import Validation from "../components/signup/validation";
 import api from "../lib/axios";
-import { useNavigate } from "react-router-dom";
 import useIsSmartphone from "../lib/hook";
 
 const SignUp = () => {
   const [tab, setTab] = useState<"email" | "picture" | "validation">("email");
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
   const isSmartphone = useIsSmartphone();
   const handleEmail = async (e: any) => {
@@ -58,59 +53,6 @@ const SignUp = () => {
     setTab("picture");
   };
 
-  const handleValidation = async () => {
-    setLoading(true);
-    try {
-      if (!croppedImage) {
-        toast({
-          title: "No image captured",
-          description: "Please capture an image",
-        });
-        return;
-      }
-
-      if (!email) {
-        toast({
-          title: "No email provided",
-          description: "Please provide an email",
-        });
-        return;
-      }
-      // Convert base64 image to a file
-      const blob = await fetch(croppedImage).then((res) => res.blob());
-      const file = new File([blob], "capturedImage.jpg", {
-        type: "image/jpeg",
-      });
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("email", email);
-
-      const result = await api.post("/validate-face/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (result.status === 200) {
-        toast({
-          title: "Face validated",
-          description: "You can now login",
-        });
-        navigate("/login");
-        return;
-      }
-    } catch (err) {
-      console.error("Error validating image:", err);
-      toast({
-        title: "Error validating image",
-        description: "Please try again",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="h-screen relative w-full overflow-hidden bg-background flex flex-col items-center justify-center">
       {isSmartphone ? (
@@ -135,15 +77,7 @@ const SignUp = () => {
           <EmailForm handleEmail={handleEmail} login={false} />
         )}
         {tab === "picture" && (
-          <PictureForm setCroppedImage={setCroppedImage} setTab={setTab} />
-        )}
-        {tab === "validation" && (
-          <Validation
-            croppedImage={croppedImage as string}
-            setTab={setTab}
-            handleValidation={handleValidation}
-            loading={loading}
-          />
+          <PictureForm setTab={setTab} email={email as string} />
         )}
       </div>
     </div>

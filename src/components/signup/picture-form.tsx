@@ -2,21 +2,22 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useRef, useEffect, useState } from "react";
 import { Label } from "../ui/label";
-import ButtonCamera from "./button-camera";
 
 import { Camera, ChevronLeftIcon, RefreshCcwIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { HoverBorderGradient } from "../ui/hover-border-gradient";
 import api from "../../lib/axios";
 import { useToast } from "../ui/use-toast";
+import CircleLoader from "react-spinners/CircleLoader";
+import { useNavigate } from "react-router-dom";
 
 interface PictureFormProps {
-  setCroppedImage: React.Dispatch<React.SetStateAction<string | null>>;
   setTab: React.Dispatch<
     React.SetStateAction<"email" | "picture" | "validation">
   >;
+  email: string;
 }
-const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
+const PictureForm = ({ setTab, email }: PictureFormProps) => {
   const { toast } = useToast();
   const videoRef = useRef(null);
   const [error, setError] = React.useState<null | string>(null);
@@ -24,9 +25,14 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
   const [permissionStatus, setPermissionStatus] = useState<
     "prompt" | "granted" | "denied"
   >("prompt");
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<null | string>(null);
+  const [capturedImages, setCapturedImages] = useState<string[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
+  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
+  console.log("capturedImages", loading);
   const checkCameraPermission = async () => {
     try {
       // @ts-ignore
@@ -45,7 +51,6 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setIsStreaming(true);
 
       if (videoRef.current) {
         // @ts-ignore
@@ -68,38 +73,69 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
       tracks.forEach((track: any) => track.stop());
       // @ts-ignore
       videoRef.current.srcObject = null;
-      setIsStreaming(false);
     }
   };
 
-  const captureImage = () => {
+  const captureImage = (): string | null => {
     if (videoRef.current && canvasRef.current) {
       // @ts-ignore
       const context = canvasRef.current.getContext("2d");
       // @ts-ignore
+
       const videoWidth = videoRef.current.videoWidth;
       // @ts-ignore
-      const videoHeight = videoRef.current.videoHeight;
 
-      // Set canvas dimensions to match the video stream dimensions
+      const videoHeight = videoRef.current.videoHeight;
       // @ts-ignore
+
       canvasRef.current.width = videoWidth;
       // @ts-ignore
+
       canvasRef.current.height = videoHeight;
 
-      // Draw the video stream onto the canvas while maintaining the aspect ratio
-      context.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
-
-      // Get the image data URL from the canvas
+      context?.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
       // @ts-ignore
-      const imageDataUrl = canvasRef.current.toDataURL("image/jpeg");
-      setCapturedImage(imageDataUrl);
-      stopCamera();
+
+      return canvasRef.current.toDataURL("image/jpeg");
     }
+    return null;
+  };
+
+  const captureBatchImages = async () => {
+    setIsCapturing(true);
+    const imageBatch: string[] = [];
+
+    for (let i = 0; i < 10; i++) {
+      const imageDataUrl = captureImage();
+      if (imageDataUrl) {
+        imageBatch.push(imageDataUrl);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300)); // 300ms delay
+    }
+
+    const firstImage = imageBatch[0];
+    setCapturedImages(imageBatch);
+    displayUserCroppedImage(firstImage);
+  };
+
+  const transformImage = async (
+    image: string,
+    formData: FormData,
+    index: number
+  ) => {
+    // Convert base64 image to a file
+    const blob = await fetch(image).then((res) => res.blob());
+    const file = new File([blob], `capturedImage-${index}.jpg`, {
+      type: "image/jpeg",
+    });
+
+    formData.append(`file_${index}`, file);
   };
 
   const reset = () => {
-    setCapturedImage(null);
+    setCapturedImages([]);
+    setIsCapturing(false);
+    setIsFinished(false);
     startCamera();
   };
   useEffect(() => {
@@ -115,7 +151,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
     };
   }, []);
 
-  const handleValidation = async () => {
+  const displayUserCroppedImage = async (capturedImage: string) => {
     try {
       if (!capturedImage) {
         return;
@@ -139,7 +175,9 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
       if (result.status === 200) {
         const imageUrl = URL.createObjectURL(result.data);
         setCroppedImage(imageUrl); // Update state with the new image URL
-        setTab("validation");
+        setIsCapturing(false);
+        stopCamera();
+        setIsFinished(true);
         return;
       }
       toast({
@@ -147,7 +185,8 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
         description: "No faces found, please try again.",
         variant: "destructive",
       });
-      setCapturedImage(null);
+      setCapturedImages([]);
+      setIsCapturing(false);
       startCamera();
     } catch (error) {
       toast({
@@ -155,8 +194,60 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
         description: "No faces found. Please try again.",
         variant: "destructive",
       });
-      setCapturedImage(null);
+      setCapturedImages([]);
+      setIsCapturing(false);
       startCamera();
+    }
+  };
+
+  const handleGoBack = () => {
+    stopCamera();
+    setTab("email");
+  };
+
+  const handleValidation = async () => {
+    setLoading(true);
+    try {
+      if (!email) {
+        toast({
+          title: "No email provided",
+          description: "Please provide an email",
+        });
+        return;
+      }
+
+      const formData = new FormData();
+
+      const promises: Promise<void>[] = [];
+      capturedImages.forEach((imageDataUrl, index) => {
+        promises.push(transformImage(imageDataUrl, formData, index));
+      });
+
+      await Promise.all(promises);
+      formData.append("email", email);
+
+      const result = await api.post("/validate-face-batch/", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (result.status === 200) {
+        toast({
+          title: "Face validated",
+          description: "You can now login",
+        });
+        navigate("/login");
+        return;
+      }
+    } catch (err) {
+      console.error("Error validating image:", err);
+      toast({
+        title: "Error validating image",
+        description: "Please try again",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -164,32 +255,36 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
     <div className="w-full flex flex-col items-center space-y-4 ">
       <button
         className="absolute top-4 left-4 bg-secondary rounded-full p-1 flex items-center justify-center"
-        onClick={() => setTab("email")}
+        onClick={handleGoBack}
       >
         <ChevronLeftIcon size={22} color="#fff" />
       </button>
-      <div className="my-2">
-        <Label>
-          {" "}
-          We need to access your camera to create a face authentication
-        </Label>
-      </div>
+      {permissionStatus === "prompt" && (
+        <div className="my-2 w-full sm:text-left text-center">
+          <Label className=" w-full">
+            We need to access your camera to create a face authentication
+          </Label>
+        </div>
+      )}
 
-      {permissionStatus === "denied" ? (
+      {permissionStatus === "denied" && (
         <Label className="text-red-500 text-sm text-center font-bold">
           You have denied camera access. Please allow camera access to proceed.
         </Label>
-      ) : (
+      )}
+      {permissionStatus === "granted" && (
         <>
-          {!capturedImage && (
-            <ButtonCamera
-              permissions={permissionStatus}
-              startCamera={startCamera}
-              stopCamera={stopCamera}
-              isStreaming={isStreaming}
-            />
-          )}
-
+          <div className="my-2 w-full sm:text-left text-center">
+            {isFinished ? (
+              <Label className="text-center">
+                Images captured successfully. Please valid if the image is clear
+              </Label>
+            ) : (
+              <Label className=" w-full">
+                Please center your face in the camera and take a picture
+              </Label>
+            )}
+          </div>
           <div className="relative">
             <video
               ref={videoRef}
@@ -197,7 +292,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
               playsInline
               className={cn(
                 "w-full max-w-md rounded-lg shadow-lg",
-                capturedImage ? "hidden" : ""
+                isFinished ? "hidden" : ""
               )}
             />
           </div>
@@ -207,29 +302,35 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
             //@ts-ignore
             width={videoRef.current ? videoRef.current.videoWidth : 640}
             //@ts-ignore
-
             height={videoRef.current ? videoRef.current.videoHeight : 480}
           />
 
-          {isStreaming && (
+          {!isCapturing && !isFinished && (
             <HoverBorderGradient
               containerClassName="rounded-full"
               as="button"
               className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
               type="submit"
-              onClick={captureImage}
-              disabled={!isStreaming}
+              onClick={captureBatchImages}
+              disabled={isCapturing}
             >
               <Camera size={16} />
               <span>Take a picture</span>
             </HoverBorderGradient>
           )}
 
-          {capturedImage && (
+          {isCapturing && (
+            <Label className="text-center flex flex-col gap-2 items-center justify-center">
+              <CircleLoader size={50} color="#16a34a" />
+              Capturing images, please wait ...
+            </Label>
+          )}
+
+          {isFinished && (
             <>
               <div className="space-y-2">
                 <img
-                  src={capturedImage}
+                  src={croppedImage ?? capturedImages[0]}
                   alt="Captured"
                   className="rounded-lg shadow-lg"
                 />

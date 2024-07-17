@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const useIsSmartphone = () => {
-  const [isSmartphone, setIsSmartphone] = useState(true);
+  const [isSmartphone, setIsSmartphone] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
