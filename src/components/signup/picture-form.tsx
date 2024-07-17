@@ -76,15 +76,21 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
     if (videoRef.current && canvasRef.current) {
       // @ts-ignore
       const context = canvasRef.current.getContext("2d");
-      context.drawImage(
-        videoRef.current,
-        0,
-        0,
-        // @ts-ignore
-        canvasRef.current.width,
-        // @ts-ignore
-        canvasRef.current.height
-      );
+      // @ts-ignore
+      const videoWidth = videoRef.current.videoWidth;
+      // @ts-ignore
+      const videoHeight = videoRef.current.videoHeight;
+
+      // Set canvas dimensions to match the video stream dimensions
+      // @ts-ignore
+      canvasRef.current.width = videoWidth;
+      // @ts-ignore
+      canvasRef.current.height = videoHeight;
+
+      // Draw the video stream onto the canvas while maintaining the aspect ratio
+      context.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
+
+      // Get the image data URL from the canvas
       // @ts-ignore
       const imageDataUrl = canvasRef.current.toDataURL("image/jpeg");
       setCapturedImage(imageDataUrl);
@@ -198,8 +204,11 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
           <canvas
             ref={canvasRef}
             style={{ display: "none" }}
-            width="640"
-            height="480"
+            //@ts-ignore
+            width={videoRef.current ? videoRef.current.videoWidth : 640}
+            //@ts-ignore
+
+            height={videoRef.current ? videoRef.current.videoHeight : 480}
           />
 
           {isStreaming && (
@@ -222,7 +231,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
                 <img
                   src={capturedImage}
                   alt="Captured"
-                  className="sm:max-w-md rounded-lg shadow-lg"
+                  className="rounded-lg shadow-lg"
                 />
                 <div className="mt-8 flex items-center justify-between">
                   <HoverBorderGradient
