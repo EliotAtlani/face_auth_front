@@ -123,7 +123,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await api.post("/detect-faces", formData, {
+      const result = await api.post("/detect-faces/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

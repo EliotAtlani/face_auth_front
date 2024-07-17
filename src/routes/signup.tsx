@@ -37,7 +37,7 @@ const SignUp = () => {
     try {
       const form = new FormData();
       form.append("email", email);
-      await api.post("/check-email", form, {
+      await api.post("/check-email/", form, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -86,7 +86,7 @@ const SignUp = () => {
       formData.append("file", file);
       formData.append("email", email);
 
-      const result = await api.post("/validate-face", formData, {
+      const result = await api.post("/validate-face/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

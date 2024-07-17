@@ -108,7 +108,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("email", email);
-      const result = await api.post("/auth-face", formData, {
+      const result = await api.post("/auth-face/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
