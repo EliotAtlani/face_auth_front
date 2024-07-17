@@ -12,7 +12,7 @@ const PrivateRoute: React.FC = () => {
   const { auth, isLoading } = authContext;
 
   if (isLoading) {
-    // You can return a loading spinner or any other loading indicator here
+    // You can return a loading spinner or any other loading indicator heres
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <CircleLoader size={50} color="#16a34a" />
