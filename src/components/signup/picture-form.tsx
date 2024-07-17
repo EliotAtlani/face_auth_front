@@ -222,7 +222,7 @@ const PictureForm = ({ setCroppedImage, setTab }: PictureFormProps) => {
                 <img
                   src={capturedImage}
                   alt="Captured"
-                  className="max-w-md rounded-lg shadow-lg"
+                  className="sm:max-w-md rounded-lg shadow-lg"
                 />
                 <div className="mt-8 flex items-center justify-between">
                   <HoverBorderGradient

@@ -15,10 +15,10 @@ function Root() {
       <div className="my-gradient "></div>
       <div className="my-gradient2"></div>
 
-      <div className="w-4/5 flex items-start">
-        <div className="flex flex-col ">
-          <img src={logo} className="w-48" />
-          <div className="text-4xl mx-auto font-normal text-neutral-600 dark:text-neutral-400 mt-4">
+      <div className="w-4/5 flex sm:flex-row flex-col items-center sm:items-start gap-4 sm:gap-2">
+        <div className="flex flex-col sm:items-start items-center">
+          <img src={logo} className="sm:w-48 w-32" />
+          <div className="text-2xl sm:text-4xl mx-auto font-normal text-neutral-600 dark:text-neutral-400 mt-4 sm:text-left text-center">
             Integrate
             <FlipWords words={words} />
             <br />
@@ -26,7 +26,7 @@ function Root() {
           </div>
         </div>
 
-        <div className="border border-black/[0.2] dark:border-white/[0.2] flex flex-col items-start w-[400px] mx-auto p-4 relative">
+        <div className="border border-black/[0.2] dark:border-white/[0.2] flex flex-col items-start w-[300px] sm:w-[400px] mx-auto p-4 relative">
           <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black" />
           <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black" />
           <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black" />
