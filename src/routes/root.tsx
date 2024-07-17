@@ -24,6 +24,36 @@ function Root() {
             <br />
             face authentication to your website
           </div>
+          <div className="flex w-full gap-8 items-center mt-8 justify-center sm:justify-start">
+            <HoverBorderGradient
+              containerClassName="rounded-full"
+              as="button"
+              className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2 w-[100px] "
+              onClick={() => navigate("/signup")}
+            >
+              <span className="mx-auto">Sign up</span>
+            </HoverBorderGradient>
+            <HoverBorderGradient
+              containerClassName="rounded-full"
+              as="button"
+              className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2 w-[100px] "
+              onClick={() => navigate("/login")}
+            >
+              <span className="mx-auto">Login</span>
+            </HoverBorderGradient>
+          </div>
+          <div className="mt-8">
+            <span className="text-xs dark:text-[#c1c1c1]">
+              {" "}
+              Facial authentication by{" "}
+              <a
+                href="mailto:eliot.atlani01@gmail.com"
+                className="underline hover:text-primary transition ease-in-out duration-500"
+              >
+                Eliot Atlani
+              </a>
+            </span>
+          </div>
         </div>
 
         <div className="border border-black/[0.2] dark:border-white/[0.2] flex flex-col items-start w-[300px] sm:w-[400px] mx-auto p-4 relative">
@@ -34,28 +64,9 @@ function Root() {
 
           <EvervaultCard text="Face Auth" />
 
-          <Label className="dark:text-white text-black mt-4 text-sm font-light text">
-            Facial authentication by Eliot Atlani
+          <Label className="dark:text-[#f2f2f2]  mt-4 text-sm font-medium text-center mx-auto">
+            This website is for demonstration purposes only.
           </Label>
-
-          <div className="flex w-full justify-between items-center mt-4">
-            <HoverBorderGradient
-              containerClassName="rounded-full"
-              as="button"
-              className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-              onClick={() => navigate("/signup")}
-            >
-              <span>Sign up</span>
-            </HoverBorderGradient>
-            <HoverBorderGradient
-              containerClassName="rounded-full"
-              as="button"
-              className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-              onClick={() => navigate("/login")}
-            >
-              <span>Login</span>
-            </HoverBorderGradient>
-          </div>
         </div>
       </div>
     </div>

@@ -1,11 +1,11 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../auth/AuthProvider";
 
 import { LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 
-const LogoutButton: React.FC = ({ className }: { className?: string }) => {
+const LogoutButton = ({ className }: { className?: string }) => {
   const authContext = useContext(AuthContext);
 
   if (!authContext) {
@@ -22,10 +22,10 @@ const LogoutButton: React.FC = ({ className }: { className?: string }) => {
     <Button
       onClick={handleLogout}
       variant="outline"
-      className={cn(className, "flex items-center gap-2")}
+      className={cn(className, "flex items-center gap-2 text-white text-lg")}
     >
       <LogOut size={16} />
-      Logout
+      log out
     </Button>
   );
 };
