@@ -258,13 +258,6 @@ const PictureForm = ({ setTab, email }: PictureFormProps) => {
       >
         <ChevronLeftIcon size={22} color="#fff" />
       </button>
-      {permissionStatus === "prompt" && (
-        <div className="my-2 w-full sm:text-left text-center">
-          <Label className=" w-full">
-            We need to access your camera to create a face authentication
-          </Label>
-        </div>
-      )}
 
       {permissionStatus === "denied" && (
         <Label className="text-red-500 text-sm text-center font-bold">
