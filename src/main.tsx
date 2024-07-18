@@ -6,6 +6,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./components/routing/router.tsx";
 import { Toaster } from "./components/ui/toaster.tsx";
 import { AuthProvider } from "./components/auth/AuthProvider.tsx";
+import ServerStatus from "./components/ServerStatus.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -13,6 +14,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <RouterProvider router={router} />
         <Toaster />
+        <ServerStatus />
       </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>

@@ -131,8 +131,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
         return;
       }
     } catch (err: any) {
-      if (err.response.status === 404) {
-        console.error("Face not found");
+      if (err.response.status === 403) {
         exist = false;
       }
       return;
