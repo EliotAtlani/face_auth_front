@@ -271,7 +271,7 @@ const PictureForm = ({ setTab, email }: PictureFormProps) => {
           You have denied camera access. Please allow camera access to proceed.
         </Label>
       )}
-      {permissionStatus === "granted" && (
+      {permissionStatus != "denied" && (
         <>
           <div className="my-2 w-full sm:text-left text-center">
             {isFinished ? (
