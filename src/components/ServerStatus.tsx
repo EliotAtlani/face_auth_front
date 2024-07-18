@@ -9,7 +9,6 @@ const ServerStatus = () => {
   const checkServerStatus = async () => {
     try {
       const response = await api.get("/ping/");
-      console.log("Response: ", response);
       if (response.status === 200) {
         setIsServerUp(true);
       } else {
@@ -30,8 +29,6 @@ const ServerStatus = () => {
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
-
-  console.log("Server status: ", isServerUp);
 
   if (!isServerUp) {
     return (

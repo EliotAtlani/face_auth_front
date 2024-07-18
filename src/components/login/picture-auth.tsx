@@ -1,44 +1,42 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useRef, useEffect, useState, useContext } from "react";
 import { Label } from "../ui/label";
-
-import { cn } from "../../lib/utils";
+import { cn, delay, getWebSocketUrl } from "../../lib/utils";
 import { useToast } from "../ui/use-toast";
 import ButtonCamera from "../signup/button-camera";
-import api from "../../lib/axios";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeftIcon } from "lucide-react";
 import { AuthContext } from "../auth/AuthProvider";
 import gif from "../../assets/gif.gif";
+
 interface PictureFormProps {
   email: string;
   setTab: React.Dispatch<
     React.SetStateAction<"email" | "picture" | "validation">
   >;
 }
-const PictureAuth = ({ email, setTab }: PictureFormProps) => {
+
+type PermissionStatus = "prompt" | "granted" | "denied";
+
+const PictureAuth: React.FC<PictureFormProps> = ({ email, setTab }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const videoRef = useRef(null);
-  const [error, setError] = React.useState<null | string>(null);
-
-  const canvasRef = useRef(null);
-  let exist = true;
-  let count = 0;
-  const [permissionStatus, setPermissionStatus] = useState<
-    "prompt" | "granted" | "denied"
-  >("prompt");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [permissionStatus, setPermissionStatus] =
+    useState<PermissionStatus>("prompt");
   const [isStreaming, setIsStreaming] = useState(false);
 
   const checkCameraPermission = async () => {
     try {
-      // @ts-ignore
-      const result = await navigator.permissions.query({ name: "camera" });
-      setPermissionStatus(result.state);
+      const result = await navigator.permissions.query({
+        name: "camera" as PermissionName,
+      });
+      setPermissionStatus(result.state as PermissionStatus);
 
       result.onchange = () => {
-        setPermissionStatus(result.state);
+        setPermissionStatus(result.state as PermissionStatus);
       };
     } catch (err) {
       console.error("Error checking camera permission:", err);
@@ -52,7 +50,6 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
       setIsStreaming(true);
 
       if (videoRef.current) {
-        // @ts-ignore
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
@@ -64,35 +61,25 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
   };
 
   const stopCamera = () => {
-    // @ts-ignore
-
     if (videoRef.current && videoRef.current.srcObject) {
-      // @ts-ignore
-      const tracks = videoRef.current.srcObject.getTracks();
-      tracks.forEach((track: any) => track.stop());
-      // @ts-ignore
+      const stream = videoRef.current.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => track.stop());
       videoRef.current.srcObject = null;
       setIsStreaming(false);
     }
   };
+
   const captureImage = () => {
     if (videoRef.current && canvasRef.current) {
-      // @ts-ignore
       const context = canvasRef.current.getContext("2d");
-      // @ts-ignore
       const videoWidth = videoRef.current.videoWidth;
-      // @ts-ignore
       const videoHeight = videoRef.current.videoHeight;
 
-      // Set canvas dimensions to match the video stream dimensions
-      // @ts-ignore
       canvasRef.current.width = videoWidth;
-      // @ts-ignore
       canvasRef.current.height = videoHeight;
 
-      // Draw the video stream onto the canvas while maintaining the aspect ratio
-      context.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
-      // @ts-ignore
+      context?.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
       const imageDataUrl = canvasRef.current.toDataURL("image/jpeg");
       return imageDataUrl;
     }
@@ -100,76 +87,96 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
   };
 
   const authContext = useContext(AuthContext);
-  const { login } = authContext;
+  const { login } = authContext || {};
 
-  const sendImageToBackend = async (imageDataUrl: string) => {
-    try {
-      const blob = await fetch(imageDataUrl).then((res) => res.blob());
-      const file = new File([blob], "capturedImage.jpg", {
-        type: "image/jpeg",
-      });
+  useEffect(() => {
+    checkCameraPermission();
+    startCamera();
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("email", email);
-      const result = await api.post("/auth-face/", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      if (result.status === 200) {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  const socket = useRef<WebSocket | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [count, setCount] = useState<number>(0);
+
+  useEffect(() => {
+    // Create WebSocket connection
+    socket.current = new WebSocket(getWebSocketUrl());
+
+    // Connection opened
+    socket.current.addEventListener("open", () => {
+      setTimeout(() => {
+        const imageDataUrl = captureImage();
+        if (imageDataUrl) sendMessage(imageDataUrl);
+      }, 1500);
+    });
+
+    // Listen for messages
+    socket.current.addEventListener("message", async (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      if (data.success) {
         toast({
           title: "Face validated",
           description: "Welcome aboard, champ!",
         });
         stopCamera();
-        login(result.data.access_token, {
-          id: "1",
-          email,
-        });
+        if (login) {
+          login(data.access_token, { id: "1", email });
+        }
+        socket.current?.close();
         navigate("/home");
         return;
       }
-    } catch (err: any) {
-      if (err.response.status === 403) {
-        exist = false;
+      if (data.stop) {
+        stopCamera();
+        setError("Auth failed. Please try again.");
+        socket.current?.close();
+        return;
       }
-      return;
-    }
-  };
+      await delay(400);
+      setCount((prevCount) => {
+        if (prevCount > 10) {
+          stopCamera();
+          setError("Auth failed. Please try again.");
+          return prevCount; // Return the previous count as no further increment is needed
+        }
+
+        const imageDataUrl = captureImage();
+        if (imageDataUrl) sendMessage(imageDataUrl);
+
+        return prevCount + 1; // Increment the count
+      });
+    });
+
+    // Connection closed
+    socket.current.addEventListener("close", () => {});
+
+    // Clean up the effect
+    return () => {
+      if (socket.current) {
+        socket.current.close();
+      }
+    };
+  }, []);
 
   const handleStop = () => {
-    exist = true;
+    socket.current?.close();
     stopCamera();
     setTab("email");
   };
-  useEffect(() => {
-    checkCameraPermission();
-    startCamera();
-    const intervalId = setInterval(() => {
-      const imageDataUrl = captureImage();
-      count += 1;
-      if (count > 4) {
-        clearInterval(intervalId);
-        stopCamera();
-        setError("Auth failed. Please try again.");
-        return;
-      }
-      if (imageDataUrl && exist) {
-        sendImageToBackend(imageDataUrl);
-      }
-    }, 2500);
 
-    return () => {
-      // @ts-ignore
-      if (videoRef.current && videoRef.current.srcObject) {
-        // @ts-ignore
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track: any) => track.stop());
-      }
-      clearInterval(intervalId);
-    };
-  }, []);
+  const sendMessage = async (imageDataUrl: string) => {
+    if (socket.current && socket.current.readyState === WebSocket.OPEN) {
+      const jsonData = {
+        email: email,
+        imageData: imageDataUrl,
+      };
+      socket.current.send(JSON.stringify(jsonData));
+    }
+  };
 
   return (
     <div className="w-full flex flex-col items-center space-y-4">
@@ -180,7 +187,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
         <ChevronLeftIcon size={22} color="#fff" />
       </button>
       {!error && (
-        <Label className=" text-sm text-center font-bold">
+        <Label className="text-sm text-center font-bold">
           Please put your head inside the rectangle
         </Label>
       )}
@@ -194,7 +201,6 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
           <div className="relative">
             <div
               className={cn(
-                // @ts-ignore
                 videoRef.current && videoRef.current.srcObject ? "" : "hidden",
                 "w-[150px] h-[150px] border-primary rounded-md border-[2px] absolute top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%]"
               )}
@@ -204,7 +210,6 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
               autoPlay
               playsInline
               className={cn(
-                // @ts-ignore
                 videoRef.current && videoRef.current.srcObject ? "" : "hidden",
                 "w-full max-w-md rounded-lg shadow-lg mt-4"
               )}
@@ -213,10 +218,7 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
           <canvas
             ref={canvasRef}
             style={{ display: "none" }}
-            //@ts-ignore
             width={videoRef.current ? videoRef.current.videoWidth : 640}
-            //@ts-ignore
-
             height={videoRef.current ? videoRef.current.videoHeight : 480}
           />
           {isStreaming && (
@@ -237,9 +239,9 @@ const PictureAuth = ({ email, setTab }: PictureFormProps) => {
             <>
               <img
                 src={gif}
-                className="rouded-xl bg-clip-border w-full overflow-hidden"
+                className="rounded-xl bg-clip-border w-full overflow-hidden"
+                alt="Error GIF"
               />
-
               <div className="text-red-500 text-md font-bold text-center">
                 {error}
               </div>

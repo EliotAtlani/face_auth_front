@@ -32,7 +32,6 @@ const PictureForm = ({ setTab, email }: PictureFormProps) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  console.log("capturedImages", loading);
   const checkCameraPermission = async () => {
     try {
       // @ts-ignore
@@ -332,29 +331,37 @@ const PictureForm = ({ setTab, email }: PictureFormProps) => {
                 <img
                   src={croppedImage ?? capturedImages[0]}
                   alt="Captured"
-                  className="rounded-lg shadow-lg"
+                  className="rounded-lg shadow-lg mx-auto"
                 />
-                <div className="mt-8 flex items-center justify-between">
-                  <HoverBorderGradient
-                    containerClassName="rounded-full"
-                    as="button"
-                    className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-                    type="submit"
-                    onClick={reset}
-                  >
-                    <RefreshCcwIcon size={16} />
-                    <span>Retake</span>
-                  </HoverBorderGradient>
-                  <HoverBorderGradient
-                    containerClassName="rounded-full"
-                    as="button"
-                    className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
-                    type="submit"
-                    onClick={handleValidation}
-                  >
-                    <span>Validate</span>
-                  </HoverBorderGradient>
-                </div>
+                {loading ? (
+                  <div className="flex justify-center">
+                    <CircleLoader size={50} color="#16a34a" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="mt-8 flex items-center justify-between gap-4">
+                      <HoverBorderGradient
+                        containerClassName="rounded-full"
+                        as="button"
+                        className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
+                        type="submit"
+                        onClick={reset}
+                      >
+                        <RefreshCcwIcon size={16} />
+                        <span>Retake</span>
+                      </HoverBorderGradient>
+                      <HoverBorderGradient
+                        containerClassName="rounded-full"
+                        as="button"
+                        className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2"
+                        type="submit"
+                        onClick={handleValidation}
+                      >
+                        <span>Validate</span>
+                      </HoverBorderGradient>
+                    </div>
+                  </>
+                )}
               </div>
             </>
           )}

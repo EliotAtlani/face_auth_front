@@ -6,6 +6,7 @@ import PrivateRoute from "./privateRoute";
 import Home from "../../routes/home";
 import Root from "../../routes/root";
 import AuthRoute from "./authRoute";
+import Websocket from "../../routes/websocket";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,16 @@ export const router = createBrowserRouter([
       {
         path: "/signup",
         element: <SignUp />,
+      },
+    ],
+  },
+  {
+    path: "/ws",
+    element: <AuthRoute />,
+    children: [
+      {
+        path: "/ws",
+        element: <Websocket />,
       },
     ],
   },
