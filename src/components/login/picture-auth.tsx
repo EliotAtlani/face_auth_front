@@ -99,8 +99,7 @@ const PictureAuth: React.FC<PictureFormProps> = ({ email, setTab }) => {
   }, []);
 
   const socket = useRef<WebSocket | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [count, setCount] = useState<number>(0);
+  const [, setCount] = useState<number>(0);
 
   useEffect(() => {
     // Create WebSocket connection
