@@ -2,7 +2,7 @@
   <a href="https://faceauth.eliotatlani.fr/" target="blank"><img src="https://faceauth.eliotatlani.fr/assets/logo-DFPyzX_F.png" width="200" alt="Faceauth Logo" /></a>
 </p>
 
-## Description - FileSwap Frontend
+## Description - FaceAuth Frontend
 
 FaceAuth is a facial recognition system that allows you to connect to your accounts without having to enter a password.
 
